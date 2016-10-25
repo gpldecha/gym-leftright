@@ -1,1 +1,1 @@
-from gym_leftright.envs.leftright_env import LeftrightEnv
+from gym_leftright.envs.leftright_env import LeftRightEnv

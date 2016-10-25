@@ -15,15 +15,20 @@ import numpy as np
 
 class LeftRightEnv(gym.Env):
 
+    metadata = {
+        'render.modes': ['human', 'rgb_array'],
+        'video.frames_per_second': 30
+    }
+
     def __init__(self):
         self.max_speed = 2
         self.left_boundary = 0
-        self.right_bounary = 10
+        self.right_boundary = 10
 
         self.viewer = None
 
         self.action_space = spaces.Discrete(2)
-        self.observation_space = spaces.Box(low=self.left_boundary, high=self.right_bounary)
+        self.observation_space = spaces.Box(low=self.left_boundary, high=self.right_boundary,shape=(1,))
 
         self._seed()
         self.reset()
@@ -42,25 +47,25 @@ class LeftRightEnv(gym.Env):
             velocity = self.max_speed
         position += velocity
 
-        position = np.clip(position, self.left_boundary, self.right_bounary)
+        position = np.clip(position, self.left_boundary, self.right_boundary)
         if (position==self.left_boundary and velocity<0): velocity = 0
         if (position==self.right_boundary and velocity>0): velocity = 0
 
         if bool(position >= self.right_boundary):
             reward = 100
-            done   = true
+            done   = True
         elif bool(position <= self.left_boundary):
             reward = 50
-            done   = true
+            done   = True
         else:
             reward = 0
-            done   = false
+            done   = False
 
         self.state = position
         return np.array(self.state), reward, done, {}
 
     def _reset(self):
-        self.state = np.array([self.np_random.uniform(low=1, high=9), 0])
+        self.state = self.np_random.uniform(low=2, high=8)
         return np.array(self.state)
 
     def _height(self, xs):
@@ -76,52 +81,32 @@ class LeftRightEnv(gym.Env):
         screen_width = 600
         screen_height = 400
 
-        world_width = self.max_position - self.min_position
+        add_edge = 0.2 * (self.right_boundary - self.left_boundary)
+        world_width = (self.right_boundary - self.left_boundary)  + add_edge
         scale = screen_width/world_width
-        carwidth=40
-        carheight=20
+        shift = (add_edge/2.0) * scale
+
+        # Agent properties
+        agent_pos = self.state
+        agent_radius = 10
 
 
         if self.viewer is None:
             from gym.envs.classic_control import rendering
             self.viewer = rendering.Viewer(screen_width, screen_height)
-            xs = np.linspace(self.min_position, self.max_position, 100)
-            ys = self._height(xs)
-            xys = list(zip((xs-self.min_position)*scale, ys*scale))
 
-            self.track = rendering.make_polyline(xys)
-            self.track.set_linewidth(4)
-            self.viewer.add_geom(self.track)
-
-            clearance = 10
-
-            l,r,t,b = -carwidth/2, carwidth/2, carheight, 0
-            car = rendering.FilledPolygon([(l,b), (l,t), (r,t), (r,b)])
-            car.add_attr(rendering.Transform(translation=(0, clearance)))
-            self.cartrans = rendering.Transform()
-            car.add_attr(self.cartrans)
-            self.viewer.add_geom(car)
-            frontwheel = rendering.make_circle(carheight/2.5)
-            frontwheel.set_color(.5, .5, .5)
-            frontwheel.add_attr(rendering.Transform(translation=(carwidth/4,clearance)))
-            frontwheel.add_attr(self.cartrans)
-            self.viewer.add_geom(frontwheel)
-            backwheel = rendering.make_circle(carheight/2.5)
-            backwheel.add_attr(rendering.Transform(translation=(-carwidth/4,clearance)))
-            backwheel.add_attr(self.cartrans)
-            backwheel.set_color(.5, .5, .5)
-            self.viewer.add_geom(backwheel)
-            flagx = (self.goal_position-self.min_position)*scale
-            flagy1 = self._height(self.goal_position)*scale
-            flagy2 = flagy1 + 50
-            flagpole = rendering.Line((flagx, flagy1), (flagx, flagy2))
+            flagx = (self.right_boundary-self.left_boundary)*scale
+            flagpole = rendering.Line((shift, screen_height/2.0), (flagx+shift, screen_height/2.0))
             self.viewer.add_geom(flagpole)
-            flag = rendering.FilledPolygon([(flagx, flagy2), (flagx, flagy2-10), (flagx+25, flagy2-5)])
-            flag.set_color(.8,.8,0)
-            self.viewer.add_geom(flag)
 
-        pos = self.state[0]
-        self.cartrans.set_translation((pos-self.min_position)*scale, self._height(pos)*scale)
-        self.cartrans.set_rotation(math.cos(3 * pos))
+            self.cartrans = rendering.Transform()
+
+            agent = rendering.make_circle(agent_radius)
+            agent.add_attr(rendering.Transform(translation=(agent_pos + shift, screen_height/2.0)))
+            agent.set_color(.0, .0, 1)
+            agent.add_attr(self.cartrans)
+            self.viewer.add_geom(agent)
+
+        self.cartrans.set_translation((agent_pos-self.left_boundary)*scale, 0)
 
         return self.viewer.render(return_rgb_array = mode=='rgb_array')
