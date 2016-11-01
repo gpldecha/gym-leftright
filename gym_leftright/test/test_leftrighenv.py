@@ -12,7 +12,7 @@ class TestLeftRightEnv(unittest.TestCase):
         env.reset()
         for _ in range(50):
 
-            env.render()
+            #env.render()
             action = env.action_space.sample()
             observation, reward, done, info = env.step(action)
 
