@@ -1,4 +1,5 @@
 from setuptools import setup
+from setuptools import find_packages
 
 setup(name='gym_leftright',
       version='0.0.1',
@@ -10,3 +11,6 @@ setup(name='gym_leftright',
       packages=['gym_leftright'],
       install_requires=['gym']
 )
+
+
+#package_dir={'gym_leftright' : 'gym_leftright/envs'},

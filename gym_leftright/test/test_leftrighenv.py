@@ -24,6 +24,5 @@ class TestLeftRightEnv(unittest.TestCase):
         return True
 
 
-
 if __name__ == '__main__':
     unittest.main()
