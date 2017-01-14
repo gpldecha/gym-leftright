@@ -6,9 +6,9 @@ setup(name='gym_leftright',
       author='Guillaume de Chambrier',
       author_email='chambrierg@gmail.com',
       description='Left or right control environment for openai/gym',
+      packages=find_packages(),
       url='https://github.com/gpldecha/gym-leftright',
       license='MIT',
-      packages=['gym_leftright'],
       install_requires=['gym']
 )
 
